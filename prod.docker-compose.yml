@@ -1,0 +1,55 @@
+version: "2"
+
+services:
+
+  idea_generator_service:
+    image: artworkad/idea_generator_service:v0.0.10
+    container_name: idea_generator_service
+    environment:
+      - DB_HOST=mongodb:27017
+      - DB_NAME=business_model_idea_generator
+      - PORT=8080
+      - AZURE_STORAGE_ACCOUNT_NAME=xx
+      - AZURE_STORAGE_ACCOUNT_KEY=xx
+      - AZURE_STORAGE_BLOB_CONTAINER=xx
+      - AZURE_ML_PREDICTION_WEBSERVICE=xx
+      - AZURE_ML_PREDICTION_WEBSERVICE_KEY=xx
+    ports:
+      - "8090:8080"
+    networks:
+      - back-tier
+      - www-tier
+    restart: always
+
+  evaluation_service:
+    image: artworkad/evaluation_service:v0.0.6
+    container_name: evaluation_service
+    environment:
+      - CROWDFLOWER_API_URL=https://api.crowdflower.com/v1
+      - CROWDFLOWER_API_KEY=xx
+      - IDEA_GENERATOR_API=http://idea_generator_service:8080
+      - DB_HOST=mongodb:27017
+      - DB_NAME=business_model_idea_generator
+      - PORT=8080
+    ports:
+      - "80:8080"
+    networks:
+      - back-tier
+      - www-tier
+    restart: always
+
+  mongodb:
+    image: mongo
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - back-tier
+    restart: always
+
+volumes:
+  mongodb-data:
+    driver: local
+
+networks:
+  back-tier:
+  www-tier:
